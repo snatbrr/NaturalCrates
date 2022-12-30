@@ -1,0 +1,10 @@
+name: NaturalCrates
+version: '1.0'
+main: me.snat.naturalcrates.Main
+api-version: 1.19
+commands:
+  crate:
+    aliases:
+      - nc
+    permission: nc.admin
+      
