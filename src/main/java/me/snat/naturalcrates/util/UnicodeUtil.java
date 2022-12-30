@@ -1,7 +1,5 @@
 package me.snat.naturalcrates.util;
 
-import static me.snat.naturalcrates.util.CC.cc;
-
 public class UnicodeUtil {
 
     public static String parse(String string) {
