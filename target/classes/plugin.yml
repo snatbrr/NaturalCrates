@@ -1,6 +1,6 @@
 name: NaturalCrates
 version: '1.0'
-main: me.snat.naturalcrates.Main
+main: me.snat.naturalcrates.NaturalCrates
 api-version: 1.19
 commands:
   crate:

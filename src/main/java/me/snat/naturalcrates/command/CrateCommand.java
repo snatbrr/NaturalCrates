@@ -1,10 +1,11 @@
 package me.snat.naturalcrates.command;
 
 import me.snat.naturalcrates.NaturalCrates;
-import me.snat.naturalcrates.types.PhysicalCrate;
-import me.snat.naturalcrates.types.VirtualCrate;
+import me.snat.naturalcrates.type.PhysicalCrate;
+import me.snat.naturalcrates.type.VirtualCrate;
 import me.snat.naturalcrates.util.ChatUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -32,7 +33,7 @@ public class CrateCommand implements CommandExecutor {
             Player player = (Player) sender;
 
             if (args.length == 0) {
-                //sender.sendMessage("&9&l" + parse("\nCrate Commands:"), parse(" /crate create") + cc("&b") + parse(" create a crate"), parse(" /crate remove") + cc("&b") + parse(" remove a crate"), parse(" /crate key") + cc("&b") + parse(" give the player a key for a crate"), parse(" /crate set") + cc("&b") + parse(" set a block to a crate"), parse(" /crate list") + cc("&b") + parse(" list all the crates"), "\n");
+                sender.sendMessage("\n" + format("&9&l") + parse("Crate Commands:"), parse(" /crate create") + format("&b") + parse(" create a crate"), parse(" /crate remove") + format("&b") + parse(" remove a crate"), parse(" /crate key") + format("&b") + parse(" give the player a key for a crate"), parse(" /crate set") + format("&b") + parse(" set a block to a crate"), parse(" /crate list") + format("&b") + parse(" list all the crates"), "\n");
                 return false;
             }
 
@@ -47,77 +48,99 @@ public class CrateCommand implements CommandExecutor {
                         return false;
                     }
 
-                    if (main.getCrateManager().getVirtualCrates().get(name) != null) {
+                    if (main.getCrateManager().getCrateConfig().get(name) != null) {
                         sender.sendMessage(getServerMessage("&cA crate with that name already exists"));
                         return false;
                     }
 
-                    Block block = player.getTargetBlock(null, 5);
                     main.getCrateManager().getVirtualCrates().put(name, new VirtualCrate(name));
+                    main.getCrateManager().saveCratesName();
                     sender.sendMessage(getServerMessage("&aCrate &b" + name + " &awas successfully created!"));
                     return false;
                 }
 
                 case "set" -> {
 
+                    String name = args[1];
+                    Block block = player.getTargetBlock(null, 5);
+
                     if (args.length != 2) {
                         sender.sendMessage(getServerMessage("&c/nc set <crate>"));
                         return false;
                     }
 
-                    String crateName = args[1];
-
-                    if (main.getCrateManager().getVirtualCrates().get(crateName) == null) {
-                        sender.sendMessage("&cThere is no such crate!");
+                    if (block.getType() == Material.AIR) {
+                        sender.sendMessage(getServerMessage("&cYou must be looking at a block"));
                         return false;
                     }
 
-                    main.getCrateManager().placeCrate(player.getTargetBlock(null, 5).getLocation(), main.getCrateManager().getVirtualCrates().get(crateName));
+                    if (main.getCrateManager().getVirtualCrates().get(name) == null) {
+                        sender.sendMessage(getServerMessage("&cA crate with that name does not exist"));
+                        return false;
+                    }
 
+                    main.getCrateManager().placeCrate(block.getLocation(), main.getCrateManager().getVirtualCrates().get(name));
+                    main.getCrateManager().saveCratesLocation(name);
                 }
 
                 case "list" -> {
 
+                    if (args.length != 1) {
+                        sender.sendMessage(getServerMessage("&c/nc list"));
+                        return false;
+                    }
 
-                    sender.sendMessage(getServerMessage("&9&l" + parse("\nCrates:")));
+                    sender.sendMessage(format("&9&l" + parse("Crates:")));
                     for (VirtualCrate crate : main.getCrateManager().getVirtualCrates().values()) {
                         sender.sendMessage(parse(format(" - &b")) + crate.getName());
                     }
+
                     return false;
                 }
 
 
                 case "delete" -> {
 
-                    if (main.getCrateManager().getVirtualCrates().get(args[1]) == null) {
+                    if (args.length != 2) {
+                        sender.sendMessage(getServerMessage("&c/nc delete <crate>"));
+                        return false;
+                    }
+
+                    if (main.getCrateManager().getCrateConfig().get(args[1]) == null) {
                         sender.sendMessage(getServerMessage("&cThere is no such crate!"));
                         return false;
                     }
 
-                    main.getCrateManager().getVirtualCrates().remove(args[1]);
-                    for (PhysicalCrate crate : main.getCrateManager().getPhysicalCrates().values()) {
-                        if (crate.getVirtualCrate().getName().equals(args[1])) {
-                            crate.getArmorStand().remove();
-                            main.getCrateManager().getPhysicalCrates().remove(crate);
-                            main.getCrateManager().getVirtualCrates().remove(args[1]);
-                        }
+                    if (main.getCrateManager().getCrateConfig().getString(args[1] + ".location") == null) {
+                        main.getCrateManager().getCrateConfig().set(args[1], null);
+                        main.getCrateManager().getVirtualCrates().remove(args[1]);
+                        main.getCrateManager().saveCratesName();
+                        sender.sendMessage(getServerMessage("&aCrate &b" + args[1] + " &awas successfully deleted!"));
+                        return false;
                     }
 
-                    sender.sendMessage(getServerMessage("&aCrate &b" + args[1] + " &awas successfully deleted!"));
+                    Location location = new Location(
+                            Bukkit.getWorld(main.getCrateManager().getCrateConfig().getString(args[1] + ".location" + ".world")),
+                            main.getCrateManager().getCrateConfig().getDouble(args[1] + ".location" + ".x"),
+                            main.getCrateManager().getCrateConfig().getDouble(args[1] + ".location" + ".y"),
+                            main.getCrateManager().getCrateConfig().getDouble(args[1] + ".location" + ".z")
+                    );
 
-                    break;
+                    main.getCrateManager().removeCrate(location, args[1]);
+                    main.getCrateManager().saveCratesName();
+                    sender.sendMessage(getServerMessage("&aCrate &b" + args[1] + " &awas successfully deleted!"));
+                    return false;
                 }
 
                 case "key" -> {
 
-                    sender.sendMessage("This command is not yet implemented");
 
                     if (args.length != 3) {
                         sender.sendMessage(ChatUtils.getServerMessage("&c/nc key <give> <crate>"));
                         return false;
                     }
 
-                    String crateKey = args[2];
+                    String key = args[2];
                     Player target = Bukkit.getPlayer(args[1]);
 
                     if (target == null) {
@@ -125,21 +148,17 @@ public class CrateCommand implements CommandExecutor {
                         return false;
                     }
 
-                    // I don't know what the fuck your on about with this
-                    /*
-                    if (cratesFile.get(crateKey) == null) {
-                        sendMessage(player, prefix + "&cThere is no such crate!");
+                    if (main.getCrateManager().getCrateConfig().getConfigurationSection("crates").getKeys(false) == null) {
+                        sender.sendMessage(ChatUtils.getServerMessage("&cThat crate does not exist!"));
                         return false;
                     }
 
-                     */
 
-
-                    ItemStack key = new ItemStack(Material.TRIPWIRE_HOOK);
-                    ItemMeta keyMeta = key.getItemMeta();
-                    keyMeta.setDisplayName(format(crateKey));
-                    key.setItemMeta(keyMeta);
-                    target.getInventory().addItem(key);
+                    ItemStack itemstack = new ItemStack(Material.TRIPWIRE_HOOK);
+                    ItemMeta meta = itemstack.getItemMeta();
+                    meta.setDisplayName(format(key));
+                    itemstack.setItemMeta(meta);
+                    target.getInventory().addItem(itemstack);
 
 
                 }

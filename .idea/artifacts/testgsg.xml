@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="testgsg">
+    <output-path>$PROJECT_DIR$/../Universal/plugins</output-path>
+    <root id="archive" name="testgsg.jar">
+      <element id="module-output" name="NaturalCrates" />
+    </root>
+  </artifact>
+</component>

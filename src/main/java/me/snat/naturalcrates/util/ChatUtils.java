@@ -7,7 +7,7 @@ import static me.snat.naturalcrates.util.UnicodeUtil.parse;
 
 public class ChatUtils {
 
-    public static String prefix = parse("&bNC &7» ");
+    public static String prefix = "&bNC &7» ";
 
     public static String format(String s) {
         return ChatColor.translateAlternateColorCodes('&', s);

@@ -15,10 +15,23 @@ public final class NaturalCrates extends JavaPlugin {
         plugin = this;
         crateManager = new CrateManager(this);
 
+        for (String crateName : crateManager.getVirtualCrates().keySet()) {
+            if (getCrateManager().getCrateConfig().get(crateName + ".location") != null) {
+                getCrateManager().loadCratesLocation();
+            }
+        }
+
+        crateManager.loadCratesName();
         getCommand("crate").setExecutor(new CrateCommand(this));
         getServer().getPluginManager().registerEvents(new CrateListener(this), this);
 
     }
 
+    @Override
+    public void onDisable() {
+    }
+
+
     public CrateManager getCrateManager() { return crateManager; }
+
 }

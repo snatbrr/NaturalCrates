@@ -1,10 +1,8 @@
-package me.snat.naturalcrates.types;
+package me.snat.naturalcrates.type;
 
-import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 
-@Data
 public class PhysicalCrate {
 
     private VirtualCrate virtualCrate;
@@ -15,6 +13,12 @@ public class PhysicalCrate {
         this.virtualCrate = virtualCrate;
         this.location = location;
         this.armorStand = armorStand;
+
     }
 
+
+    public Location getLocation() {  return location; }
+    public ArmorStand getArmorStand() { return armorStand; }
+
+    public VirtualCrate getVirtualCrates() { return virtualCrate; }
 }
